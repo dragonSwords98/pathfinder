@@ -4,12 +4,6 @@
 #
 # 2019-05-01
 
-# README.md
-# Requirements
-# - install python 3.7.3 or greater
-# $ python --version
-# Python 3.7.3
-
 
 from typing import List
 from collections import defaultdict
@@ -21,6 +15,7 @@ class Edge:
     Let's ignore the lack of labels and assume we have only A-Z
     Assume weights are integer
     """
+
     def __init__(self, input: str):
         self.weight = int(input[2:])
         self.source = input[1]  # superfluous if use Graph._hashify
@@ -41,6 +36,7 @@ class Graph:
     It has O(1) average, minor rehash op
     lets keep it flat and put only weights as values
     """
+
     def _hashify(self):
         for edge in self.edges:
             self.hashTable[edge[:2]] = Edge(edge)
@@ -52,6 +48,7 @@ class Graph:
     So for simplicity, assume this method is private and only accessed
     in __init__
     """
+
     def _addEdge(self, source, destination):
         if self.graph[source]:
             self.graph[source].append(
@@ -83,6 +80,7 @@ class Graph:
 
     Given path, find the exact distance of this fixed path
     """
+
     def computeExactPathDistance(self, path: str):
         """To avoid dubious cleanup, lets assume 'path' input
         have no '-' separators, nevermind about path.replace('-', ''),
@@ -133,7 +131,7 @@ class Graph:
         # completed a unique path
         if current == destination:
             count += 1
-            print(paths) # debug by providing each unique path to STDOUT
+            print(paths)  # debug by providing each unique path to STDOUT
         else:
             # this route is meant to be further explored
             for node in self.graph[current]:
@@ -157,6 +155,7 @@ class Graph:
     ideal for count all possibilities and comparing to find best possible.
     So let's go with DFS.
     """
+
     def countAllUniquePathsByDFS(self, source: str, destination: str):
         # superfluous, but more practical case catching
         if source == destination:
@@ -178,7 +177,12 @@ class Graph:
     following the theme of practicality, we will go with Bellman-Ford
     to allow negative weights to exist.
     """
-    def findLengthOfShortestPathBetweenTwo(self, source: str, destination: str):
+
+    def findLengthOfShortestPathBetweenTwo(
+        self,
+        source: str,
+        destination: str,
+    ):
         length = 0
 
         # Bellman-Ford
