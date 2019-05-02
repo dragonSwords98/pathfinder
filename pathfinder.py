@@ -7,7 +7,7 @@
 
 from typing import List
 from collections import defaultdict
-
+import math
 
 class Edge:
     """Assume strict naming convention, 2 single character node labels and a weight
@@ -36,7 +36,6 @@ class Graph:
     It has O(1) average, minor rehash op
     lets keep it flat and put only weights as values
     """
-
     def _hashify(self):
         for edge in self.edges:
             self.hashTable[edge[:2]] = Edge(edge)
@@ -48,7 +47,6 @@ class Graph:
     So for simplicity, assume this method is private and only accessed
     in __init__
     """
-
     def _addEdge(self, source, destination):
         if self.graph[source]:
             self.graph[source].append(
@@ -80,7 +78,6 @@ class Graph:
 
     Given path, find the exact distance of this fixed path
     """
-
     def computeExactPathDistance(self, path: str):
         """To avoid dubious cleanup, lets assume 'path' input
         have no '-' separators, nevermind about path.replace('-', ''),
@@ -96,9 +93,8 @@ class Graph:
         if not path:
             return 0
 
-        # if edges are the same 'label', assume this is a ref to the same node
-        if path[0] == path[-1]:
-            return 0
+        if len(path) == 2 and path[0] == path[-1]:
+           return 'NO SUCH ROUTE' # Assignment says impossible ¯\_(ツ)_/¯
 
         # access each path in the hash table, O(N) time of O(1) access ops
         # get the weight of said edge and move on
@@ -115,6 +111,22 @@ class Graph:
 
         return distance
 
+    def _isPathLegal(self, count: int, limit: int, notation: str = None):
+        """Severe assumptions made here about 'notation'.
+
+        We assume notation will present legal operators only
+        '<', '>', '==', '<=', '>='. We also assume a user will give
+        the correct input, or an outer API layer will filter and provide
+        proper 'if/else' or 'case' tree to validate the input.
+
+        The only check I will make here is the assumption that without
+        a notation, return all paths / count
+        """
+        if notation is None:
+            return True
+        else:
+            return eval(str(count) + notation + str(limit))
+
     def _countAllUniquePathsByDFSHelper(
         self,
         current: str,
@@ -122,6 +134,8 @@ class Graph:
         visited: bool,
         count: int,
         paths: List[str],
+        limit: int,
+        notation: str,
     ):
 
         # visit
@@ -130,17 +144,32 @@ class Graph:
 
         # completed a unique path
         if current == destination:
-            count += 1
-            print(paths)  # debug by providing each unique path to STDOUT
-        else:
-            # this route is meant to be further explored
-            for node in self.graph[current]:
-                if visited[node] is None:
-                    print(f"Error: node {node} is not in graph")
-                elif not visited[node]:
-                    count += self._countAllUniquePathsByDFSHelper(
-                        node, destination, visited, count, paths
-                    )
+            """Assignment Output #6, #7, #10 set limiters,
+            so the algorithm was modified slightly to pan through
+            the results and reduce the final count accordingly.
+            """
+            if self._isPathLegal(len(paths), limit, notation):
+                count += 1
+                print(f"Found legal path: {paths}")  # debug
+            else:
+                print(f"Excluded due to limit boundary: {paths}")  # debug
+
+        # regardless of current / destination, this current node's
+        # unvisited routes are meant to be further explored
+        for node in self.graph[current]:
+            if visited[node] is None:
+                print(f"Error: node {node} is not in graph")
+                return "NO SUCH ROUTE"
+            elif not visited[node]:
+                count += self._countAllUniquePathsByDFSHelper(
+                    node,
+                    destination,
+                    visited,
+                    count,
+                    paths,
+                    limit,
+                    notation,
+                )
 
         # unvisit to allow this node to be revisited by another path
         paths.pop()
@@ -155,15 +184,22 @@ class Graph:
     ideal for count all possibilities and comparing to find best possible.
     So let's go with DFS.
     """
-
-    def countAllUniquePathsByDFS(self, source: str, destination: str):
-        # superfluous, but more practical case catching
-        if source == destination:
-            return 1
-
+    def countAllUniquePathsByDFS(
+        self,
+        source: str,
+        destination: str,
+        limit: int = None,
+        notation: str = None,
+    ):
         # Gets total count from helper
         count = self._countAllUniquePathsByDFSHelper(
-            source, destination, self.visited, 0, []
+            source,
+            destination,
+            self.visited,
+            0,
+            [],
+            limit,
+            notation,
         )
 
         # clean up this instance
@@ -177,91 +213,29 @@ class Graph:
     following the theme of practicality, we will go with Bellman-Ford
     to allow negative weights to exist.
     """
+    # def findLengthOfShortestPathBetweenTwo(
+    #     self,
+    #     source: str,
+    #     destination: str,
+    # ):
+    #     length = 0
 
-    def findLengthOfShortestPathBetweenTwo(
-        self,
-        source: str,
-        destination: str,
-    ):
-        length = 0
+    #     # Bellman-Ford for all distances from source
+    #     return bellmanFord(source)[destination]
 
-        # Bellman-Ford
+    # def bellmanFord(self, source: str):
+    #     # set all node distances from source to infinity
+    #     edges = [*self.hashTable.values()]
+    #     distance = dict.fromkeys(self.hashTable.keys(), math.inf)
 
-        return 0
+    #     print(distance)
+    #     distance[] = 0
+
+    #     # relaxation len(self.hashTable) - 1 times. the longest possible
+    #     # path that can be shortest path is the `len(nodes) - 1`
+    #     for relax in range(len(self.hashTable) - 1):
 
 
-if __name__ == "__main__":
-    """Normally as a python engineer, I would create a test file
-    that tests the classes in a separate file folder. However,
-    here I will do all my tests in the main to save some time.
-
-    I created scenarios as a dictionary, it could easily be a class too.
-    """
-
-    """Assignment 1: Given any arbitrary array of nodes, path [],
-    compute the distance of this path, dist num
-    """
-    edges = []
-    g = Graph(edges)
-    distance = g.computeExactPathDistance("")
-
-    assert distance == 0
-
-    scenario = {"edges": ["AB1", "BC2", "CD5"], "path": "ABCD", "expected": 8}
-    g = Graph(scenario["edges"])
-    distance = g.computeExactPathDistance(scenario["path"])
-
-    assert distance == scenario["expected"]
-
-    scenario = {
-        "edges": ["AB1", "BC2", "CD5", "DC4", "CE16"],
-        "path": "ABCE",
-        "expected": 19,
-    }
-    g = Graph(scenario["edges"])
-    distance = g.computeExactPathDistance(scenario["path"])
-
-    assert distance == scenario["expected"]
-
-    print("All tests passed")
-
-    """Leaving this here to show my thinking on expanding on the available tests
-    typically, it is better to do unit tests
-    """
-    # for scenario in scenarios:
-    #   g = new Graph(scenario.edges)
-    #   g.computeExactPathDistance(scenario.path)
-
-    """Assignment 2: All unique paths for node to node, aka search algorithm
-    """
-
-    scenario = {
-        "edges": ["AB1", "BC2", "CD5", "DC4", "CE16"],
-        "source": "A",
-        "destination": "C",
-        "expected": 1,
-    }
-    g = Graph(scenario["edges"])
-    pathsCount = g.countAllUniquePathsByDFS(
-        scenario["source"],
-        scenario["destination"],
-    )
-
-    assert pathsCount == scenario["expected"]
-
-    scenario = {
-        "edges": ["AB1", "BC2", "CD5", "DC4", "CE16"],
-        "source": "A",
-        "destination": "E",
-        "expected": 1,  # Cannot revisit C
-    }
-    g = Graph(scenario["edges"])
-    pathsCount = g.countAllUniquePathsByDFS(
-        scenario["source"],
-        scenario["destination"],
-    )
-
-    assert pathsCount == scenario["expected"]
 
     """Assignment 3: Find shortest path between two, aka dijkstra's / bellman-ford
     """
