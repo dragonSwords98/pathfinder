@@ -7,6 +7,7 @@
 
 from typing import List
 from collections import defaultdict, deque
+import math
 
 """ We wont use this exception but it's here
 for an example where an error can be handled
@@ -34,10 +35,14 @@ class Graph:
 
     def __init__(self, edges: List[str] = []):
         self.edges = edges
-        self.graph = defaultdict(list)  # avoid key errors
         self.hashTable = defaultdict(Edge)  # avoid key errors
+        self.graph = defaultdict(list)  # avoid key errors
+        self.weightedGraph = []
         self._hashify()
         self._graphify()
+        self.nodes = set()
+        self._weightedGraphify()
+        print(self.graph)
 
     """build a hash table to avoid O(N^2) operations, may come in handy
     It has O(1) average, minor rehash op
@@ -57,12 +62,15 @@ class Graph:
     """
 
     def _addEdge(self, source, destination):
-        if self.graph[source]:
-            self.graph[source].append(
-                destination
-            )  # Question: am I able to append to a None?
-        else:
-            self.graph[source] = [destination]
+        self.graph[source].append(destination)
+
+    def _addWeightedEdge(self, source, destination, weight):
+        self.weightedGraph.append((source, destination, weight))
+
+    def _weightedGraphify(self):
+        for edge in self.edges:
+            self.nodes.update(edge[:2])
+            self._addWeightedEdge(edge[0], edge[1], edge[2])
 
     def _graphify(self):
         for edge in self.edges:
@@ -219,28 +227,89 @@ class Graph:
 
     We can assume the weights are non-negative and use dikjstra's. However,
     following the theme of practicality, we will go with Bellman-Ford
-    to allow negative weights to exist.
+    to allow negative weights to exist and throw exception for negative
+    weight cycles
     """
+
+    def _bellmanFord(
+        self,
+        source: str,
+        destination: str,
+    ):
+        # set all node distances from source to infinity
+        distances = dict.fromkeys(self.nodes, math.inf)
+        distances[source] = 0
+
+        sourceIsDestination = source == destination
+        print('special case? ', sourceIsDestination)
+
+        # relaxation is equal to the longest possible
+        # shortest path which is `len(nodes) - 1`
+        for relax in range(len(self.nodes) - 1):
+            for (u, v, w) in self.weightedGraph:
+                # special case where source is destination
+                # override distance of source once
+                if distances[u] != math.inf and v == destination and sourceIsDestination:
+                    sourceIsDestination = False
+                    distances[v] = distances[u] + int(w)
+                elif distances[u] != math.inf and distances[u] + int(w) < distances[v]:
+                    # if distance of source is not infinity (not reached yet)
+                    # and that distance + weight of u-v is smaller than recorded
+                    # distance[v], we've found a 'shorter path' to v
+                    distances[v] = distances[u] + int(w)
+                
+        # negative-weight cycle check
+        for (u, v, w) in self.weightedGraph: 
+            if distances[u] != math.inf and distances[u] + int(w) < distances[v]: 
+                return f"NegativeCycleError: distance of {u} + {w}" \
+                " is less than distance to {v}"
+
+        print(distances)
+        return distances
 
     def findLengthOfShortestPathBetweenTwo(
         self,
         source: str,
         destination: str,
     ):
-        # length = 0
+        if not set([source, destination]) <= set(self.nodes):
+            return "NO SUCH ROUTE"
 
-        #     # Bellman-Ford for all distances from source
-        #     return bellmanFord(source)[destination]
 
-        # def bellmanFord(self, source: str):
-        #     # set all node distances from source to infinity
-        #     edges = [*self.hashTable.values()]
-        #     distance = dict.fromkeys(self.hashTable.keys(), math.inf)
+        # Bellman-Ford for all distances from source
+        return self._bellmanFord(source, destination)[destination]
 
-        #     print(distance)
-        #     distance[] = 0
+    def countAllUniquePathsBelowWeight(
+        self,
+        source: str,
+        destination: str,
+        weight: int,
+    ):
+        if not set([source, destination]) <= set(self.nodes):
+            return "NO SUCH ROUTE"
 
-        #     # relaxation len(self.hashTable) - 1 times. the longest possible
-        #     # path that can be shortest path is the `len(nodes) - 1`
-        #     for relax in range(len(self.hashTable) - 1):
-        pass
+        count = 0
+        paths = []
+        queue = deque([(source, [source], weight)])
+        # FIFO queue
+        while queue:
+            (current, path, remaining_weight) = queue.popleft()
+
+            for neighbor in self.graph[current]:
+                neighbor_weight = self.hashTable[current + neighbor].weight
+                temp_path = path + [neighbor]
+                temp_weight = remaining_weight - neighbor_weight
+                # there's still some 'gas left in the tank'
+                if neighbor_weight < remaining_weight:
+                    queue.append((
+                        neighbor,
+                        temp_path,
+                        temp_weight,
+                    ))
+                    # we've arrived!
+                    if neighbor == destination:
+                        print(weight - temp_weight, temp_path)
+                        paths.append({ "weight": weight - temp_weight, "path": temp_path })
+                        count += 1
+
+        return count

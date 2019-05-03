@@ -323,13 +323,13 @@ def test_countAllUniquePathsWithLimitByBFS_less_or_equal_to():
         "expected": 2,
     }
     g = Graph(scenario["edges"])
-    distance = g.countAllUniquePathsWithLimitByBFS(
+    pathsCount = g.countAllUniquePathsWithLimitByBFS(
         scenario["source"],
         scenario["destination"],
         scenario["limit"],
         scenario["notation"],
     )
-    assert distance == scenario["expected"]
+    assert pathsCount == scenario["expected"]
 
 
 def test_countAllUniquePathsWithLimitByBFS_less():
@@ -346,13 +346,13 @@ def test_countAllUniquePathsWithLimitByBFS_less():
         "expected": 3881,
     }
     g = Graph(scenario["edges"])
-    distance = g.countAllUniquePathsWithLimitByBFS(
+    pathsCount = g.countAllUniquePathsWithLimitByBFS(
         scenario["source"],
         scenario["destination"],
         scenario["limit"],
         scenario["notation"],
     )
-    assert distance == scenario["expected"]
+    assert pathsCount == scenario["expected"]
 
 
 def test_countAllUniquePathsWithLimitByBFS_equal():
@@ -369,13 +369,13 @@ def test_countAllUniquePathsWithLimitByBFS_equal():
         "expected": 3,
     }
     g = Graph(scenario["edges"])
-    distance = g.countAllUniquePathsWithLimitByBFS(
+    pathsCount = g.countAllUniquePathsWithLimitByBFS(
         scenario["source"],
         scenario["destination"],
         scenario["limit"],
         scenario["notation"],
     )
-    assert distance == scenario["expected"]
+    assert pathsCount == scenario["expected"]
 
 
 # Assignment 3
@@ -388,16 +388,153 @@ the weights are non-negative.
 
 
 def test_findLengthOfShortestPathBetweenTwo_empty():
-    pass
+    scenario = {
+        "edges": [],
+        "source": "A",
+        "destination": "C",
+        "expected": "NO SUCH ROUTE",
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+
+    assert distance == scenario["expected"]
 
 
 def test_findLengthOfShortestPathBetweenTwo_no_answer():
-    pass
+    scenario = {
+        "edges": ["AB1"],
+        "source": "A",
+        "destination": "C",
+        "expected": "NO SUCH ROUTE",
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+
+    assert distance == scenario["expected"]
 
 
-def test_findLengthOfShortestPathBetweenTwo_short():
-    pass
+def test_findLengthOfShortestPathBetweenTwo_one_route():
+    scenario = {
+        "edges": ["AB1"],
+        "source": "A",
+        "destination": "B",
+        "expected": 1,
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+
+    assert distance == scenario["expected"]
 
 
-def test_findLengthOfShortestPathBetweenTwo_long():
-    pass
+
+def test_findLengthOfShortestPathBetweenTwo_one_path():
+    scenario = {
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "B",
+        "destination": "C",
+        "expected": 4,
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+    assert distance == scenario["expected"]
+
+
+def test_findLengthOfShortestPathBetweenTwo_roundtrip():
+    scenario = {  # 9
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "B",
+        "destination": "B",
+        "expected": 9,
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+    assert distance == scenario["expected"]
+
+
+def test_findLengthOfShortestPathBetweenTwo_many_paths():
+    scenario = {  # 8
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "A",
+        "destination": "C",
+        "expected": 9,
+    }
+    g = Graph(scenario["edges"])
+    distance = g.findLengthOfShortestPathBetweenTwo(
+        scenario["source"],
+        scenario["destination"],
+    )
+    assert distance == scenario["expected"]
+
+# Assignment 4
+""" #10 The number of different routes from C to C with a distance of less than
+30
+
+We want to count paths, but remain below a limit weight
+"""
+def test_count_all_unique_paths_below_weight():
+    scenario = {  # 10
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "C",
+        "destination": "C",
+        "distance_cannot_exceed": 30,
+        "expected": 7,
+    }
+    g = Graph(scenario["edges"])
+    count = g.countAllUniquePathsBelowWeight(
+        scenario["source"],
+        scenario["destination"],
+        scenario["distance_cannot_exceed"],
+    )
+    assert count == scenario["expected"]
+
+
+def test_count_all_unique_paths_below_weight2():
+    scenario = {  # 10
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "C",
+        "destination": "C",
+        "distance_cannot_exceed": 31,
+        "expected": 9,
+    }
+    g = Graph(scenario["edges"])
+    count = g.countAllUniquePathsBelowWeight(
+        scenario["source"],
+        scenario["destination"],
+        scenario["distance_cannot_exceed"],
+    )
+    assert count == scenario["expected"]
