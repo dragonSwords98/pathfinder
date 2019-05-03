@@ -241,7 +241,6 @@ class Graph:
         distances[source] = 0
 
         sourceIsDestination = source == destination
-        print('special case? ', sourceIsDestination)
 
         # relaxation is equal to the longest possible
         # shortest path which is `len(nodes) - 1`
