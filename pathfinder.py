@@ -6,8 +6,14 @@
 
 
 from typing import List
-from collections import defaultdict
+from collections import defaultdict, deque
 import math
+
+""" We wont use this exception but it's here
+for an example where an error can be handled
+# class NotationError(Exception):
+#     pass
+"""
 
 class Edge:
     """Assume strict naming convention, 2 single character node labels and a weight
@@ -23,14 +29,15 @@ class Edge:
 
 
 class Graph:
+
+    LEGAL_NOTATIONS = ["<", "<=", "=="]
+
     def __init__(self, edges: List[str] = []):
         self.edges = edges
         self.graph = defaultdict(list)  # avoid key errors
         self.hashTable = defaultdict(Edge)  # avoid key errors
-        self.visited = defaultdict(bool)
         self._hashify()
         self._graphify()
-        self._trackVisited()
 
     """build a hash table to avoid O(N^2) operations, may come in handy
     It has O(1) average, minor rehash op
@@ -58,16 +65,6 @@ class Graph:
     def _graphify(self):
         for edge in self.edges:
             self._addEdge(edge[0], edge[1])
-
-    def _trackVisited(self):
-        for edge in self.edges:
-            # edge counting blindly
-            self.visited[edge[0]] = False
-            self.visited[edge[1]] = False
-
-    def _clearVisits(self):
-        # clearing 'visited' with n+n space
-        self.visited = dict.fromkeys(self.visited, 0)
 
     """
     It is asymptotically faster to first build a hash table,
@@ -111,99 +108,110 @@ class Graph:
 
         return distance
 
-    def _isPathLegal(self, count: int, limit: int, notation: str = None):
-        """Severe assumptions made here about 'notation'.
+    def _validateNotation(self, notation):
+        """Assumptions made here about 'notation'.
 
         We assume notation will present legal operators only
-        '<', '>', '==', '<=', '>='. We also assume a user will give
-        the correct input, or an outer API layer will filter and provide
+        '<', '>', '==', '<=', '>='.
+
+        Let's reject illegal operators that yield infinite loops.
+        Reject: '>', '>=', etc.
+        Accept: '<', ==', '<='
+
+        Normally, an outer API layer will filter and provide
         proper 'if/else' or 'case' tree to validate the input.
 
-        The only check I will make here is the assumption that without
-        a notation, return all paths / count
+        Without a notation, return False
         """
         if notation is None:
-            return True
-        else:
-            return eval(str(count) + notation + str(limit))
+            return False
 
-    def _countAllUniquePathsByDFSHelper(
-        self,
-        current: str,
-        destination: str,
-        visited: bool,
-        count: int,
-        paths: List[str],
-        limit: int,
-        notation: str,
-    ):
+        return notation in self.LEGAL_NOTATIONS
 
-        # visit
-        visited[current] = True
-        paths.append(current)
-
-        # completed a unique path
-        if current == destination:
-            """Assignment Output #6, #7, #10 set limiters,
-            so the algorithm was modified slightly to pan through
-            the results and reduce the final count accordingly.
-            """
-            if self._isPathLegal(len(paths), limit, notation):
-                count += 1
-                print(f"Found legal path: {paths}")  # debug
-            else:
-                print(f"Excluded due to limit boundary: {paths}")  # debug
-
-        # regardless of current / destination, this current node's
-        # unvisited routes are meant to be further explored
-        for node in self.graph[current]:
-            if visited[node] is None:
-                print(f"Error: node {node} is not in graph")
-                return "NO SUCH ROUTE"
-            elif not visited[node]:
-                count += self._countAllUniquePathsByDFSHelper(
-                    node,
-                    destination,
-                    visited,
-                    count,
-                    paths,
-                    limit,
-                    notation,
-                )
-
-        # unvisit to allow this node to be revisited by another path
-        paths.pop()
-        visited[current] = False
-
-        return count
-
-    """Theoretically, we have DFS, BFS to choose from as most straightfwd,
-    however DFS is dyamic programming based, while BFS is queue-based.
-    BFS would apply a queue, generally a more straightforward approach
-    for finding shortest path. DFS is a more exhaustive approach,
-    ideal for count all possibilities and comparing to find best possible.
-    So let's go with DFS.
+    """ Simple mapping of nodes with the current limit
     """
-    def countAllUniquePathsByDFS(
+    def _mapNeighborsWithLimit(self, neighbors: list, limit: int, path: list):
+        enqueue = deque()
+        for neighbor in neighbors:
+            enqueue.append({
+                "node": neighbor,
+                "limit": limit,
+                "path": path + [neighbor],
+            })
+        return enqueue
+
+    """ Queue approach to count all unique paths by only going as deep
+    as the limit for all breadths
+    """
+    def countAllUniquePathsWithLimitByBFS(
         self,
         source: str,
         destination: str,
-        limit: int = None,
+        limit: int,
         notation: str = None,
     ):
-        # Gets total count from helper
-        count = self._countAllUniquePathsByDFSHelper(
-            source,
-            destination,
-            self.visited,
-            0,
-            [],
-            limit,
-            notation,
+        if not self._validateNotation(notation):
+            # typically we raise an exception
+            # raise NotationError(f"{notation} is not a valid notation")
+            return f"NotationError {notation} is not a valid notation"
+
+        count = 0
+        paths = []
+        queue = self._mapNeighborsWithLimit(
+            self.graph[source],
+            limit - 1,
+            [source],
         )
 
-        # clean up this instance
-        self._clearVisits()
+        while queue: # O(|V * E|) op
+            node = queue.popleft()
+            current = node["node"]
+            current_limit = node["limit"] - 1
+            path = node["path"]
+
+            # Equal case
+            if notation == '==': # exactly 'limit' stops
+                if current == destination and current_limit == -1:
+                    if path not in paths:
+                        count += 1
+                        paths.append(path)
+                        # print(path) # debug
+                        path = [source]
+                if current_limit >= 0:
+                    queue.extend(self._mapNeighborsWithLimit(
+                        self.graph[current],
+                        current_limit,
+                        path,
+                    ))
+            elif notation == '<=': # maximum of 'limit' stops
+                # 'less or equal to' cases
+                if current == destination:
+                    if path not in paths:
+                        count += 1
+                        paths.append(path)
+                        # print(path) # debug
+                        path = [source]
+                if current_limit >= 0:
+                    queue.extend(self._mapNeighborsWithLimit(
+                        self.graph[current],
+                        current_limit,
+                        path,
+                    ))
+            elif notation == '<': # less than 'limit' stops
+                # 'Less than' case
+                if current == destination:
+                    if path not in paths:
+                        count += 1
+                        paths.append(path)
+                        # print(path) # debug
+                        path = [source]
+                if current_limit > 0:
+                    queue.extend(self._mapNeighborsWithLimit(
+                        self.graph[current],
+                        current_limit,
+                        path,
+                    ))
+            # else # dont care
 
         return count
 
