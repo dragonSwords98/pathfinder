@@ -249,20 +249,30 @@ class Graph:
             for (u, v, w) in self.weightedGraph:
                 # special case where source is destination
                 # override distance of source once
-                if distances[u] != math.inf and v == destination and sourceIsDestination:
+                if distances[u] != math.inf and \
+                   v == destination and \
+                   sourceIsDestination:
+
                     sourceIsDestination = False
                     distances[v] = distances[u] + int(w)
-                elif distances[u] != math.inf and distances[u] + int(w) < distances[v]:
+
+                elif (
+                    distances[u] != math.inf and
+                    distances[u] + int(w) < distances[v]
+                ):
+
                     # if distance of source is not infinity (not reached yet)
-                    # and that distance + weight of u-v is smaller than recorded
-                    # distance[v], we've found a 'shorter path' to v
+                    # and that distance + weight of u-v is smaller than
+                    # recorded distance[v], we've found a 'shorter path' to v
                     distances[v] = distances[u] + int(w)
-                
+
         # negative-weight cycle check
-        for (u, v, w) in self.weightedGraph: 
-            if distances[u] != math.inf and distances[u] + int(w) < distances[v]: 
+        for (u, v, w) in self.weightedGraph:
+            if distances[u] != math.inf and \
+               distances[u] + int(w) < distances[v]:
+
                 return f"NegativeCycleError: distance of {u} + {w}" \
-                " is less than distance to {v}"
+                       " is less than distance to {v}"
 
         print(distances)
         return distances
@@ -274,7 +284,6 @@ class Graph:
     ):
         if not set([source, destination]) <= set(self.nodes):
             return "NO SUCH ROUTE"
-
 
         # Bellman-Ford for all distances from source
         return self._bellmanFord(source, destination)[destination]
@@ -309,7 +318,10 @@ class Graph:
                     # we've arrived!
                     if neighbor == destination:
                         print(weight - temp_weight, temp_path)
-                        paths.append({ "weight": weight - temp_weight, "path": temp_path })
+                        paths.append({
+                            "weight": weight - temp_weight,
+                            "path": temp_path,
+                        })
                         count += 1
 
         return count

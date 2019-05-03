@@ -435,7 +435,6 @@ def test_findLengthOfShortestPathBetweenTwo_one_route():
     assert distance == scenario["expected"]
 
 
-
 def test_findLengthOfShortestPathBetweenTwo_one_path():
     scenario = {
         "edges": [
@@ -492,12 +491,15 @@ def test_findLengthOfShortestPathBetweenTwo_many_paths():
     )
     assert distance == scenario["expected"]
 
+
 # Assignment 4
 """ #10 The number of different routes from C to C with a distance of less than
 30
 
 We want to count paths, but remain below a limit weight
 """
+
+
 def test_count_all_unique_paths_below_weight():
     scenario = {  # 10
         "edges": [
