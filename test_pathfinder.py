@@ -1,5 +1,4 @@
-import pytest
-from pathfinder import Edge, Graph
+from pathfinder import Graph
 
 """Unit tests for pathfinder.py
 
@@ -19,6 +18,7 @@ because this is also impossible.
 """Assignment 1: Given any arbitrary array of nodes, path [],
 compute the distance of this path, dist num
 """
+
 
 def test_computeExactPathDistance_empty():
     edges = []
@@ -68,7 +68,7 @@ def test_computeExactPathDistance_no_answer():
     distance = g.computeExactPathDistance(scenario["path"])
     assert distance == scenario["expected"]
 
-    scenario = { #5
+    scenario = {  # 5
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -105,7 +105,7 @@ def test_computeExactPathDistance_small():
 
 
 def test_computeExactPathDistance_large():
-    scenario = { #1
+    scenario = {  # 1
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -118,7 +118,7 @@ def test_computeExactPathDistance_large():
     distance = g.computeExactPathDistance(scenario["path"])
     assert distance == scenario["expected"]
 
-    scenario = { #2
+    scenario = {  # 2
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -131,7 +131,7 @@ def test_computeExactPathDistance_large():
     distance = g.computeExactPathDistance(scenario["path"])
     assert distance == scenario["expected"]
 
-    scenario = { #3
+    scenario = {  # 3
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -144,7 +144,7 @@ def test_computeExactPathDistance_large():
     distance = g.computeExactPathDistance(scenario["path"])
     assert distance == scenario["expected"]
 
-    scenario = { #4
+    scenario = {  # 4
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -172,11 +172,12 @@ approach. And queue allows me to better cover our limit/notation variants in
 a simple if-tree, let's go with BFS.
 """
 
+
 def test_countAllUniquePathsWithLimitByBFS_empty():
     scenario = {
         "edges": [],
-        "source": "A", # dont-care
-        "destination": "C", # dont-care
+        "source": "A",  # dont-care
+        "destination": "C",  # dont-care
         "notation": '<=',
         "limit": 2,
         "expected": 0,
@@ -228,6 +229,7 @@ def test_countAllUniquePathsWithLimitByBFS_no_answer_returns_zero():
     )
 
     assert pathsCount == scenario["expected"]
+
 
 def test_countAllUniquePathsWithLimitByBFS_one_route():
     scenario = {
@@ -308,7 +310,7 @@ def test_countAllUniquePathsWithLimitByBFS_loopback_in_path():
 
 
 def test_countAllUniquePathsWithLimitByBFS_less_or_equal_to():
-    scenario = { #6
+    scenario = {  # 6
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -354,7 +356,7 @@ def test_countAllUniquePathsWithLimitByBFS_less():
 
 
 def test_countAllUniquePathsWithLimitByBFS_equal():
-    scenario = { #7
+    scenario = {  # 7
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
             "DE6", "AD5", "CE2", "EB3",
@@ -383,6 +385,7 @@ aka dijkstra's / bellman-ford.
 We will use bellman-ford because we prefer not to assume
 the weights are non-negative.
 """
+
 
 def test_findLengthOfShortestPathBetweenTwo_empty():
     pass
