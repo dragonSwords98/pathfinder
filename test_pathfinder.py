@@ -250,7 +250,23 @@ def test_countAllUniquePathsWithLimitByBFS_one_route():
 
 
 def test_countAllUniquePathsWithLimitByBFS_one_unique_path():
-    pass
+    scenario = {
+        "edges": ["AB2", "BD3", "DC4", "CA2"],
+        "source": "A",
+        "destination": "C",
+        "notation": '<=',
+        "limit": 4,
+        "expected": 1,
+    }
+    g = Graph(scenario["edges"])
+    pathsCount = g.countAllUniquePathsWithLimitByBFS(
+        scenario["source"],
+        scenario["destination"],
+        scenario["limit"],
+        scenario["notation"],
+    )
+
+    assert pathsCount == scenario["expected"]
 
 
 def test_countAllUniquePathsWithLimitByBFS_loopback_in_path():
@@ -292,45 +308,6 @@ def test_countAllUniquePathsWithLimitByBFS_loopback_in_path():
 
 
 def test_countAllUniquePathsWithLimitByBFS_less_or_equal_to():
-    pass
-
-
-def test_countAllUniquePathsWithLimitByBFS_less():
-    pass
-
-
-def test_countAllUniquePathsWithLimitByBFS_equal():
-    scenario = { #7
-        "edges": [
-            "AB5", "BC4", "CD8", "DC8",
-            "DE6", "AD5", "CE2", "EB3",
-            "AE7",
-        ],
-        "source": "A",
-        "destination": "C",
-        "notation": "==",
-        "limit": 4,
-        "expected": 3,
-    }
-    g = Graph(scenario["edges"])
-    distance = g.countAllUniquePathsWithLimitByBFS(
-        scenario["source"],
-        scenario["destination"],
-        scenario["limit"],
-        scenario["notation"],
-    )
-    assert distance == scenario["expected"]
-
-
-def test_countAllUniquePathsWithLimitByBFS_greater_or_equal_to():
-    pass
-
-
-def test_countAllUniquePathsWithLimitByBFS_greater():
-    pass
-
-
-def test_countAllUniquePathsWithLimitByBFS_roundtrip():
     scenario = { #6
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
@@ -353,7 +330,7 @@ def test_countAllUniquePathsWithLimitByBFS_roundtrip():
     assert distance == scenario["expected"]
 
 
-def test_countAllUniquePathsWithLimitByBFS_many_paths():
+def test_countAllUniquePathsWithLimitByBFS_less():
     scenario = {
         "edges": [
             "AB5", "BC4", "CD8", "DC8",
@@ -365,6 +342,29 @@ def test_countAllUniquePathsWithLimitByBFS_many_paths():
         "notation": '<',
         "limit": 30,
         "expected": 3881,
+    }
+    g = Graph(scenario["edges"])
+    distance = g.countAllUniquePathsWithLimitByBFS(
+        scenario["source"],
+        scenario["destination"],
+        scenario["limit"],
+        scenario["notation"],
+    )
+    assert distance == scenario["expected"]
+
+
+def test_countAllUniquePathsWithLimitByBFS_equal():
+    scenario = { #7
+        "edges": [
+            "AB5", "BC4", "CD8", "DC8",
+            "DE6", "AD5", "CE2", "EB3",
+            "AE7",
+        ],
+        "source": "A",
+        "destination": "C",
+        "notation": "==",
+        "limit": 4,
+        "expected": 3,
     }
     g = Graph(scenario["edges"])
     distance = g.countAllUniquePathsWithLimitByBFS(
